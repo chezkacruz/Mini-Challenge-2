@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title>Mini Challenge 2: Expense Tracker</title>
+		<link href="https://fonts.googleapis.com/css?family=Assistant:400,700&display=swap" rel="stylesheet">
+		<style>
+			body {
+	            width: 600px;
+	            margin: 0 auto;
+	            font-family: 'Assistant', sans-serif;
+	            font-size: 1em;
+	        }
+
+	        table {
+	        	width: 100%;
+	        	background-color: #eee;
+	        	border-radius: 10px;
+	        	padding: 4px;
+	        }
+
+			td {
+				padding: 0px 8px;
+				height: 30px;
+			}
+
+			input {
+				width: 100%;
+				border: 1px solid #ddd;
+				border-radius: 4px;
+				padding-left: 4px;
+			}
+
+			select {
+				width: 100%;
+			}
+
+			button {
+				background-color: cornflowerblue;
+	            color: white;
+	            padding: 7px 15px;
+	            display: inline-block;
+	            border-radius: 3px; 
+	            border: 1px solid cornflowerblue;
+	            text-align: center;	
+	            text-transform: uppercase;
+	            margin: 8px auto;
+	            width: 100px;
+	            font-size: 1em;
+			}
+
+			p {
+				margin: 0;
+			}
+
+			#form {
+				margin-top: 20px;
+			}
+
+			#header {
+				margin-bottom: 0.5em;
+			}
+
+			#controls {
+				display: flex;
+				flex-flow: row wrap;
+				justify-content: space-between;
+				align-items: flex-end;
+				margin: 8px;
+			}
+
+
+			/** 
+			 * These are the CSS classes to be used for the
+			 * styling of the expense item list.
+			 */
+
+			.food {
+				border-top: 10px solid #E69F00;
+			}
+
+			.transpo {
+				border-top: 10px solid #56B4E9;
+			}
+
+			.bills {
+				border-top: 10px solid #009E73;
+			}
+
+			.expenseItem {
+				min-height: 30px;
+				background-color: #eee;
+				display: flex;
+				padding: 8px;
+				margin: 8px;
+				align-items: center;
+			}
+
+			.datecol {
+				width: 20%;
+			}
+
+			.itemcol {
+				width: 60%;
+			}
+
+			.amountcol {
+				width: 20%;
+				text-align: right;
+				font-weight: 700;
+			}
+
+			/** This is to style the error message **/
+			#error {
+				margin: 0;
+				padding: 0;
+				color: #B00000;
+				font-weight: 700;
+			}
+
+		</style>
+		<!-- IMPORT JQUERY (from CDN or download it) -->
+		<script src="https://code.jquery.com/jquery-3.6.0.min.js" type="text/javascript"></script>
+		<script type="text/javascript">
+			// Insert your javascript/jquery code here
+			
+			// This will store all the expenses locally
+			var expenses = [];
+			var sum = 0;
+
+			$(document).ready(function() {
+
+				// This creates a date object with an initialized value of the date today
+				var today = new Date();
+				var formattedDate = today.getFullYear().toString() + '-' + (today.getMonth() + 1).toString().padStart(2, 0) + '-' + today.getDate().toString().padStart(2, 0);
+
+				// Set the formattedDate value to the date input field's value
+				$("#date").val(formattedDate); 
+
+
+				// Place all functions and validations here
+
+				function Expense(date, category, description, amount){ //create object of expenses 
+					this.date = date; 
+					this.category = category; 
+					this.description = description; 
+					this.amount = (Math.round(amount * 100) / 100).toFixed(2); 
+				}
+
+				$("#submit").click(function(){
+					var valid_desc = false; 
+					var valid_amt = false;
+					$("#amount").css("border", "2px solid #DDDDDD");
+					$("#item").css("border", "2px solid #DDDDDD");
+
+					if ($("#item").val().trim().length <= 0){ //no description
+						$("#item").css("border", "2px solid #B00000"); 
+						$("#error").text("Please enter a description for the expense");
+						valid_desc = false;
+					} else if ($("#item").val().trim().length > 0){ //with description
+						$("#item").css("border", "2px solid #DDDDDD"); 
+						$("#error").text(""); 
+						valid_desc = true; 
+					}
+
+					if (valid_desc){//check amt only if desc is valid
+						if($("#amount").val().length <= 0 ){ //no amt
+							$("#amount").css("border", "2px solid #B00000");
+							$("#error").text("Please enter an amount"); 
+							valid_amt = false;
+						} else if($("#amount").val().length > 0){ //with amt
+							$("#amount").css("border", "2px solid #DDDDDD");
+							$("#error").text("");
+							valid_amt = true;
+						}
+					}
+
+					if(valid_amt && valid_desc){
+						// start of adding to list
+						my_div = document.createElement("div"); 
+						my_div.className = "expenseItem"; 
+
+						var date = $("#date").val(); 
+						var date_holder = document.createElement("p"); 
+						var date_text = document.createTextNode(date); 
+						date_holder.append(date_text); 
+						date_holder.className = "datecol"; 
+
+						var category = $("#category").val();
+						
+						if($("#category").val().localeCompare("food") == 0){
+							my_div.classList.add("food"); 
+						} else if($("#category").val().localeCompare("transpo") == 0){
+							my_div.classList.add("transpo"); 
+						} else {
+							my_div.classList.add("bills"); 
+							
+						}
+
+						var description = $("#item").val();
+						var item_holder = document.createElement("p"); 
+						var item_text = document.createTextNode(description); 
+						item_holder.append(item_text);
+						item_holder.className = "itemcol";
+						
+
+						var amount = (Math.round($("#amount").val() * 100) / 100).toFixed(2);
+						var amount_holder = document.createElement("p"); 
+						var amount_text = document.createTextNode(amount); 
+						amount_holder.append(amount_text);
+						
+						amount_holder.className = "amountcol"; 
+						
+						var exp = new Expense(date, category, description, amount);
+						expenses.push(exp); // add to expenses array
+
+						var container = $("#list"); 
+
+						my_div.appendChild(date_holder); 
+						my_div.appendChild(item_holder);  
+						my_div.appendChild(amount_holder); 
+
+						list.append(my_div); 
+						//end of adding to list 
+
+
+						sum += parseFloat(amount); // update sum 
+						
+						
+						$('#form').find('input').val(''); //reset form 
+						$("#date").val(formattedDate); //set date to current date 
+						$("#category").val("food");  //reset category to food
+
+						$("#total").text((Math.round(sum * 100) / 100).toFixed(2)); //change sum text to new sum
+					}
+					
+				}); 
+
+				$("#filter").click(function(){
+					let holder = []
+					if ($("#filter").val().localeCompare("food") == 0){
+						let holder = expenses.filter(expense => expense.category.localeCompare("food") == 0); 
+						
+						$('.transpo').css('display', 'none');
+						$('.bills').css('display', 'none');
+						$('.food').css('display', 'flex');
+
+						temp_amt = holder.reduce(function(prev, cur){
+							return prev + parseFloat(cur.amount); 
+						}, 0); 
+
+						console.log(temp_amt); 
+						$("#total").text((Math.round(temp_amt * 100) / 100).toFixed(2)); 
+					} else if ($("#filter").val().localeCompare("transpo") == 0){
+						let holder = expenses.filter(expense => expense.category.localeCompare("transpo") == 0); 
+						console.log(holder); 
+
+						$('.food').css('display', 'none');
+						$('.bills').css('display', 'none');
+						$('.transpo').css('display', 'flex');
+						
+						
+						temp_amt = holder.reduce(function(prev, cur){
+							return prev + parseFloat(cur.amount); 
+						}, 0); 
+
+						console.log(temp_amt); 
+						$("#total").text((Math.round(temp_amt * 100) / 100).toFixed(2)); 
+					}  else if ($("#filter").val().localeCompare("bills") == 0){
+						let holder = expenses.filter(expense => expense.category.localeCompare("bills") == 0); 
+						console.log(holder); 
+						
+						$('.transpo').css('display', 'none');
+						$('.food').css('display', 'none');
+						$('.bills').css('display', 'flex');
+
+						temp_amt = holder.reduce(function(prev, cur){
+							return prev + parseFloat(cur.amount); 
+						}, 0); 
+
+						console.log(temp_amt); 
+						$("#total").text((Math.round(temp_amt * 100) / 100).toFixed(2)); 
+					} else {
+						$('.transpo').css('display', 'flex');
+						$('.food').css('display', 'flex');
+						$('.bills').css('display', 'flex');
+						$("#total").text((Math.round(sum * 100) / 100).toFixed(2)); 
+
+					}
+				}); 
+
+
+			})
+		</script>
+	</head>
+	
+	<body>
+		<div>
+			<h3>CCAPDEV - Mini Challenge 2</h3>
+			<p>Franchezka Cruz</p>
+		</div>
+		<div id="form">
+			
+			<table>
+				<tr>
+					<td colspan="4" style="border-bottom: 2px solid #aaa"><strong>Log Expense</strong>
+					</td>
+				<tr>
+				<tr>
+					<td><label for="date">Date</label></td>
+					<td><input type="date" name="date" id="date"></td>
+
+					<td><label for="category">Category</label></td>
+					<td>
+						<select id="category">
+							<option value="food" selected>Food</option>
+							<option value="transpo">Transportation</option>
+							<option value="bills">Bills</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td><label for="item">Description</label></td>
+					<td><input type="text" name="item" id="item"></td>
+
+					<td><label for="amount">Amount</label></td>
+					<td><input type="number" name="amount" id="amount"></td>
+				</tr>
+				<tr>
+					<td colspan="4"><p id="error"></p></td>
+				</tr>
+				<tr>
+					<td colspan="4">
+						<center><button id="submit">Submit</button></center>
+					</td>
+				</tr>
+			</table>
+		</div>
+
+		<div id="controls">
+			<div>
+				<h2 id="header">Expenses</h2>
+				<p>Total: <span id="total">0.00</span></p>
+			</div>
+
+			<div>
+				<p><strong>Filter</strong></p>
+				<select id="filter">
+					<option value="all" selected>All</option>
+					<option value="food">Food</option>
+					<option value="transpo">Transportation</option>
+					<option value="bills">Bills</option>
+				</select>
+			</div>
+		</div>
+
+		<div id="container">
+			<div id="list">
+			</div>
+		</div>
+	</body>
+</html>
